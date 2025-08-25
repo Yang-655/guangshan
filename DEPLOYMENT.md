@@ -23,7 +23,7 @@
    VERCEL_ORG_ID=team_QGll43H9qexBPyyIteBxxO0K
    VERCEL_PROJECT_ID=prj_SmPKW8ecpVql5gW69ahe7NgOTxS5
    VITE_BLOB_READ_WRITE_TOKEN=vercel_blob_rw_5b4KMEneedO4Zfvi_oHp23jxITcxhLYwGeZaAuizJoL97TI
-   VITE_API_BASE_URL=https://your-domain.vercel.app/api
+   VITE_API_BASE_URL=https://traea2ix2mf3.vercel.app/api
    VITE_APP_NAME=光闪视频发布平台
    VITE_APP_VERSION=1.0.0
    ```
@@ -86,7 +86,7 @@ vercel --prod
 | 变量名 | 值 | 说明 |
 |--------|----|---------|
 | `VITE_BLOB_READ_WRITE_TOKEN` | `vercel_blob_rw_...` | Vercel Blob 存储令牌 |
-| `VITE_API_BASE_URL` | `https://your-domain.vercel.app/api` | API 基础地址 |
+| `VITE_API_BASE_URL` | `https://traea2ix2mf3.vercel.app/api` | API 基础地址 |
 | `VITE_APP_NAME` | `光闪视频发布平台` | 应用名称 |
 | `VITE_APP_VERSION` | `1.0.0` | 应用版本 |
 | `NODE_ENV` | `production` | 环境标识 |
@@ -94,12 +94,12 @@ vercel --prod
 ## 部署后验证
 
 ### 1. 前端验证
-- ✅ 访问 `https://your-domain.vercel.app`
+- ✅ 访问 `https://traea2ix2mf3.vercel.app`
 - ✅ 检查页面是否正常加载
 - ✅ 测试路由导航
 
 ### 2. API 验证
-- ✅ 访问 `https://your-domain.vercel.app/api/health`
+- ✅ 访问 `https://traea2ix2mf3.vercel.app/api/health`
 - ✅ 测试用户注册/登录接口
 - ✅ 测试视频上传接口
 

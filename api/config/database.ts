@@ -28,7 +28,7 @@ export const sequelize = new Sequelize({
   },
   // 在连接时启用外键约束
   hooks: {
-    afterConnect: async (connection: any) => {
+    afterConnect: async (connection: { query: (sql: string) => Promise<unknown> }) => {
       await connection.query('PRAGMA foreign_keys = ON;');
       console.log('SQLite外键约束已启用');
     }

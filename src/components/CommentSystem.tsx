@@ -291,13 +291,6 @@ export default function CommentSystem({ videoId, onClose, className = '' }: Comm
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const { success, warning, error } = useToast();
 
-  // 模拟评论数据
-  useEffect(() => {
-    if (videoId) {
-      loadComments();
-    }
-  }, [videoId]);
-
   const loadComments = async () => {
     setLoading(true);
     try {
@@ -358,6 +351,13 @@ export default function CommentSystem({ videoId, onClose, className = '' }: Comm
       setLoading(false);
     }
   };
+
+  // 模拟评论数据
+  useEffect(() => {
+    if (videoId) {
+      loadComments();
+    }
+  }, [videoId, loadComments]);
 
   const handleLike = async (commentId: string) => {
     try {

@@ -59,6 +59,17 @@ const EnhancedMediaPreview: React.FC<EnhancedMediaPreviewProps> = ({
     }
   }, [currentIndex, currentFile]);
 
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   // 键盘事件处理
   useEffect(() => {
     if (!isOpen) return;
@@ -99,7 +110,7 @@ const EnhancedMediaPreview: React.FC<EnhancedMediaPreviewProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentFile, onClose, onNext, onPrevious]);
+  }, [isOpen, currentFile, onClose, onNext, onPrevious, togglePlay]);
 
   // 自动隐藏控制栏
   useEffect(() => {
@@ -154,17 +165,6 @@ const EnhancedMediaPreview: React.FC<EnhancedMediaPreviewProps> = ({
 
   const handleRotate = () => {
     setRotation(prev => (prev + 90) % 360);
-  };
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
   };
 
   const toggleMute = () => {

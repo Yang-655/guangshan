@@ -23,10 +23,10 @@ export interface UserBehaviorAttributes {
 }
 
 // 创建用户行为时的可选属性
-export interface UserBehaviorCreationAttributes extends Optional<UserBehaviorAttributes, 
+export type UserBehaviorCreationAttributes = Optional<UserBehaviorAttributes, 
   'id' | 'watch_time' | 'watch_percentage' | 'device_type' | 'ip_address' | 
   'user_agent' | 'referrer' | 'created_at' | 'updated_at'
-> {}
+>;
 
 // 用户行为模型类
 export class UserBehavior extends Model<UserBehaviorAttributes, UserBehaviorCreationAttributes> implements UserBehaviorAttributes {

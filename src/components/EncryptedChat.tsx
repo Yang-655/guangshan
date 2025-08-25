@@ -88,19 +88,6 @@ const EncryptedChat: React.FC<EncryptedChatProps> = ({
     { code: 'ru', name: 'Русский' }
   ];
 
-  useEffect(() => {
-    initializeChat();
-    return () => {
-      if (chatManagerRef.current) {
-        chatManagerRef.current.endEncryptedChat();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const initializeChat = async () => {
     try {
       // 初始化加密聊天管理器
@@ -131,6 +118,19 @@ const EncryptedChat: React.FC<EncryptedChatProps> = ({
       addSystemMessage('❌ 加密初始化失败，请重试');
     }
   };
+
+  useEffect(() => {
+    initializeChat();
+    return () => {
+      if (chatManagerRef.current) {
+        chatManagerRef.current.endEncryptedChat();
+      }
+    };
+  }, [initializeChat]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const addSystemMessage = (content: string) => {
     const systemMessage: ChatMessage = {

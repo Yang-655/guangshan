@@ -274,30 +274,6 @@ const AdvancedVideoEditor: React.FC<VideoEditorProps> = ({
     }
   }, [editHistory, historyIndex, autoSave]);
 
-  const undo = useCallback(() => {
-    if (historyIndex > -1) {
-      const previousIndex = historyIndex - 1;
-      setHistoryIndex(previousIndex);
-      
-      // Apply previous state by reversing the current action
-      if (previousIndex >= 0) {
-        const actionToReverse = editHistory[historyIndex];
-        applyHistoryAction(actionToReverse, true);
-      }
-    }
-  }, [historyIndex, editHistory]);
-
-  const redo = useCallback(() => {
-    if (historyIndex < editHistory.length - 1) {
-      const nextIndex = historyIndex + 1;
-      setHistoryIndex(nextIndex);
-      
-      // Apply next state
-      const actionToApply = editHistory[nextIndex];
-      applyHistoryAction(actionToApply, false);
-    }
-  }, [historyIndex, editHistory]);
-  
   const applyHistoryAction = useCallback((action: EditAction, reverse: boolean) => {
     switch (action.type) {
       case 'filter':
@@ -337,6 +313,30 @@ const AdvancedVideoEditor: React.FC<VideoEditorProps> = ({
         break;
     }
   }, []);
+
+  const undo = useCallback(() => {
+    if (historyIndex > -1) {
+      const previousIndex = historyIndex - 1;
+      setHistoryIndex(previousIndex);
+      
+      // Apply previous state by reversing the current action
+      if (previousIndex >= 0) {
+        const actionToReverse = editHistory[historyIndex];
+        applyHistoryAction(actionToReverse, true);
+      }
+    }
+  }, [historyIndex, editHistory, applyHistoryAction]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < editHistory.length - 1) {
+      const nextIndex = historyIndex + 1;
+      setHistoryIndex(nextIndex);
+      
+      // Apply next state
+      const actionToApply = editHistory[nextIndex];
+      applyHistoryAction(actionToApply, false);
+    }
+  }, [historyIndex, editHistory, applyHistoryAction]);
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -809,7 +809,7 @@ const AdvancedVideoEditor: React.FC<VideoEditorProps> = ({
         )}
       </div>
     );
-  }, [duration, currentTime, trimStart, trimEnd, transitions, appliedEffects, textOverlays, playbackSpeed, seekTo]);
+  }, [duration, currentTime, trimStart, trimEnd, transitions, appliedEffects, textOverlays, playbackSpeed, seekTo, transitionTypes]);
 
   const renderTabContent = () => {
     switch (activeTab) {

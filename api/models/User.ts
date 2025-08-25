@@ -27,11 +27,11 @@ export interface UserAttributes {
 }
 
 // 创建用户时的可选属性
-export interface UserCreationAttributes extends Optional<UserAttributes, 
+export type UserCreationAttributes = Optional<UserAttributes, 
   'id' | 'email' | 'avatar' | 'bio' | 'location' | 'website' | 'birthday' | 
   'follower_count' | 'following_count' | 'video_count' | 'like_count' | 
   'is_verified' | 'is_active' | 'last_login' | 'created_at' | 'updated_at'
-> {}
+>;
 
 // 用户模型类
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {

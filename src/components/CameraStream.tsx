@@ -153,7 +153,7 @@ export default function CameraStream({
     return () => {
       stopCamera();
     };
-  }, [isVideoOn, currentFacingMode]);
+  }, [isVideoOn, currentFacingMode, startCamera]);
 
   // 组件卸载时清理
   useEffect(() => {

@@ -4,12 +4,10 @@
 
 import express, { type Request, type Response, type NextFunction }  from 'express';
 import cors from 'cors';
-import path from 'path';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import videoRoutes from './routes/videos';
 import userRoutes from './routes/users';
-import { initializeDatabase, testConnection } from './models/index';
 
 // load env
 dotenv.config();
@@ -87,7 +85,7 @@ app.get('/api/health', (req: Request, res: Response): void => {
 /**
  * error handler middleware
  */
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
   console.error('API错误:', error);
   
   // 确保错误响应是JSON格式

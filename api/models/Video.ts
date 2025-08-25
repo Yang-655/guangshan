@@ -33,12 +33,12 @@ export interface VideoAttributes {
 }
 
 // 创建视频时的可选属性
-export interface VideoCreationAttributes extends Optional<VideoAttributes, 
+export type VideoCreationAttributes = Optional<VideoAttributes, 
   'id' | 'description' | 'video_url' | 'thumbnail_url' | 'file_path' | 'file_size' | 
   'resolution' | 'format' | 'quality_score' | 'view_count' | 'like_count' | 
   'comment_count' | 'share_count' | 'is_private' | 'is_published' | 'published_at' | 
   'created_at' | 'updated_at'
-> {}
+>;
 
 // 视频模型类
 export class Video extends Model<VideoAttributes, VideoCreationAttributes> implements VideoAttributes {
@@ -113,7 +113,7 @@ Video.init({
     allowNull: false,
     defaultValue: [],
     validate: {
-      isArrayValidator(value: any) {
+      isArrayValidator(value: unknown) {
         if (!Array.isArray(value)) {
           throw new Error('Tags must be an array');
         }

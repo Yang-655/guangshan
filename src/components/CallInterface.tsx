@@ -149,7 +149,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({ onClose }) => {
         clearInterval(durationIntervalRef.current);
       }
     };
-  }, []);
+  }, [handleCallEvent, updateDuration]);
 
   // 监听通话状态变化，设置视频流
   useEffect(() => {
