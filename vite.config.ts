@@ -38,12 +38,21 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          router: ['react-router-dom']
-        }
+          router: ['react-router-dom'],
+          ui: ['lucide-react', 'sonner'],
+          utils: ['clsx', 'tailwind-merge', 'zustand'],
+          media: ['simple-peer', 'socket.io-client'],
+          crypto: ['crypto-js'],
+          services: ['@vercel/blob']
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     }
   },

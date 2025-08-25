@@ -1,33 +1,37 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "@/pages/Home";
-import Discover from "@/pages/Discover";
-import Camera from "@/pages/Camera";
-import Messages from "@/pages/Messages";
-import Profile from "@/pages/Profile";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import SubtitleCenter from "@/pages/SubtitleCenter";
-import ImagePublish from "@/pages/ImagePublish";
-import LiveStreaming from "@/pages/LiveStreaming";
-import ChatDetail from "@/pages/ChatDetail";
-import Wallet from "@/pages/Wallet";
-import Shop from "@/pages/Shop";
-import AdsCenter from "@/pages/AdsCenter";
-import Settings from "@/pages/Settings";
-import ModerationCenter from "@/pages/ModerationCenter";
-import AnalyticsCenter from "@/pages/AnalyticsCenter";
-import CryptoCenter from "@/pages/CryptoCenter";
-import FraudShield from "@/pages/FraudShield";
-import SecondHand from "@/pages/SecondHand";
-import Square from "@/pages/Square";
-import Reward from "@/pages/Reward";
-import RewardPublish from "@/pages/RewardPublish";
-import RewardDetail from "@/pages/RewardDetail";
-import RewardRules from "@/pages/RewardRules";
-import RewardManage from "@/pages/RewardManage";
-import CreditCenter from "@/pages/CreditCenter";
-import VideoDetail from "@/pages/VideoDetail";
-import VideoDebug from "@/pages/VideoDebug";
+import { lazy, Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+// 动态导入大型组件
+const Home = lazy(() => import("@/pages/Home"));
+const Discover = lazy(() => import("@/pages/Discover"));
+const Camera = lazy(() => import("@/pages/Camera"));
+const Messages = lazy(() => import("@/pages/Messages"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const SubtitleCenter = lazy(() => import("@/pages/SubtitleCenter"));
+const ImagePublish = lazy(() => import("@/pages/ImagePublish"));
+const LiveStreaming = lazy(() => import("@/pages/LiveStreaming"));
+const ChatDetail = lazy(() => import("@/pages/ChatDetail"));
+const Wallet = lazy(() => import("@/pages/Wallet"));
+const Shop = lazy(() => import("@/pages/Shop"));
+const AdsCenter = lazy(() => import("@/pages/AdsCenter"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const ModerationCenter = lazy(() => import("@/pages/ModerationCenter"));
+const AnalyticsCenter = lazy(() => import("@/pages/AnalyticsCenter"));
+const CryptoCenter = lazy(() => import("@/pages/CryptoCenter"));
+const FraudShield = lazy(() => import("@/pages/FraudShield"));
+const SecondHand = lazy(() => import("@/pages/SecondHand"));
+const Square = lazy(() => import("@/pages/Square"));
+const Reward = lazy(() => import("@/pages/Reward"));
+const RewardPublish = lazy(() => import("@/pages/RewardPublish"));
+const RewardDetail = lazy(() => import("@/pages/RewardDetail"));
+const RewardRules = lazy(() => import("@/pages/RewardRules"));
+const RewardManage = lazy(() => import("@/pages/RewardManage"));
+const CreditCenter = lazy(() => import("@/pages/CreditCenter"));
+const VideoDetail = lazy(() => import("@/pages/VideoDetail"));
+const VideoDebug = lazy(() => import("@/pages/VideoDebug"));
 import TestPage from "@/pages/TestPage";
 import DraftManager from "@/components/DraftManager";
 import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
@@ -90,7 +94,8 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <div className="relative">
-          <Routes>
+          <Suspense fallback={<div className="h-screen flex items-center justify-center bg-black"><LoadingSpinner /></div>}>
+            <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/camera" element={<Camera />} />
@@ -126,7 +131,8 @@ export default function App() {
           <Route path="/terms" element={<div className="text-center text-xl p-8">服务条款 - 开发中</div>} />
           <Route path="/privacy" element={<div className="text-center text-xl p-8">隐私政策 - 开发中</div>} />
           <Route path="/forgot-password" element={<div className="text-center text-xl p-8">忘记密码 - 开发中</div>} />
-          </Routes>
+            </Routes>
+          </Suspense>
           <TabNavigation />
           <NetworkStatusMonitor showIndicator={true} autoRepublish={true} />
           <ToastManager toasts={toasts} onRemove={removeToast} />
