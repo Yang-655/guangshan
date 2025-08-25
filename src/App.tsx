@@ -1,0 +1,101 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "@/pages/Home";
+import Discover from "@/pages/Discover";
+import Camera from "@/pages/Camera";
+import Messages from "@/pages/Messages";
+import Profile from "@/pages/Profile";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import SubtitleCenter from "@/pages/SubtitleCenter";
+import ImagePublish from "@/pages/ImagePublish";
+import LiveStreaming from "@/pages/LiveStreaming";
+import ChatDetail from "@/pages/ChatDetail";
+import Wallet from "@/pages/Wallet";
+import Shop from "@/pages/Shop";
+import AdsCenter from "@/pages/AdsCenter";
+import Settings from "@/pages/Settings";
+import ModerationCenter from "@/pages/ModerationCenter";
+import AnalyticsCenter from "@/pages/AnalyticsCenter";
+import CryptoCenter from "@/pages/CryptoCenter";
+import FraudShield from "@/pages/FraudShield";
+import SecondHand from "@/pages/SecondHand";
+import Square from "@/pages/Square";
+import Reward from "@/pages/Reward";
+import RewardPublish from "@/pages/RewardPublish";
+import RewardDetail from "@/pages/RewardDetail";
+import RewardRules from "@/pages/RewardRules";
+import RewardManage from "@/pages/RewardManage";
+import CreditCenter from "@/pages/CreditCenter";
+import VideoDetail from "@/pages/VideoDetail";
+import VideoDebug from "@/pages/VideoDebug";
+import DraftManager from "@/components/DraftManager";
+import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
+import TabNavigation from "@/components/TabNavigation";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { ToastManager, useToast } from "@/components/Toast";
+import IncomingCallNotification from './components/IncomingCallNotification';
+import { Toaster } from "sonner";
+import { useEffect } from "react";
+
+export default function App() {
+  const { toasts, removeToast } = useToast();
+
+  useEffect(() => {
+    console.log('App component mounted');
+    console.log('Environment variables:', {
+      API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+      APP_NAME: import.meta.env.VITE_APP_NAME,
+      NODE_ENV: import.meta.env.NODE_ENV
+    });
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <Router>
+        <div className="relative">
+          <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/discover" element={<Discover />} />
+          <Route path="/camera" element={<Camera />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/subtitle-center" element={<SubtitleCenter />} />
+          <Route path="/image-publish" element={<ImagePublish />} />
+          <Route path="/live" element={<LiveStreaming />} />
+          <Route path="/live-streaming" element={<LiveStreaming />} />
+          <Route path="/chat/:chatId" element={<ChatDetail />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/secondhand" element={<SecondHand />} />
+          <Route path="/square" element={<Square />} />
+          <Route path="/reward" element={<Reward />} />
+          <Route path="/reward/publish" element={<RewardPublish />} />
+          <Route path="/reward/:taskId" element={<RewardDetail />} />
+          <Route path="/reward/rules" element={<RewardRules />} />
+          <Route path="/reward/manage" element={<RewardManage />} />
+          <Route path="/credit" element={<CreditCenter />} />
+          <Route path="/ads" element={<AdsCenter />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/moderation" element={<ModerationCenter />} />
+          <Route path="/analytics" element={<AnalyticsCenter />} />
+          <Route path="/crypto" element={<CryptoCenter />} />
+          <Route path="/fraud-shield" element={<FraudShield />} />
+          <Route path="/video/:videoId" element={<VideoDetail />} />
+          <Route path="/debug/video" element={<VideoDebug />} />
+          <Route path="/drafts" element={<DraftManager onClose={() => window.history.back()} />} />
+          <Route path="/terms" element={<div className="text-center text-xl p-8">服务条款 - 开发中</div>} />
+          <Route path="/privacy" element={<div className="text-center text-xl p-8">隐私政策 - 开发中</div>} />
+          <Route path="/forgot-password" element={<div className="text-center text-xl p-8">忘记密码 - 开发中</div>} />
+          </Routes>
+          <TabNavigation />
+          <NetworkStatusMonitor showIndicator={true} autoRepublish={true} />
+          <ToastManager toasts={toasts} onRemove={removeToast} />
+          <IncomingCallNotification />
+          <Toaster position="top-center" richColors />
+        </div>
+      </Router>
+    </ErrorBoundary>
+  );
+}

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频数据重置功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn.danger {
+            background-color: #dc3545;
+        }
+        .btn.danger:hover {
+            background-color: #c82333;
+        }
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .video-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .video-item h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .video-item p {
+            margin: 2px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ 视频数据重置功能测试</h1>
+            <p>测试重置所有视频数据的完整流程和安全性</p>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="test-section">
+            <h3>1. 连接状态检查</h3>
+            <button class="btn" onclick="checkConnection()">检查API连接</button>
+            <div id="connection-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 当前视频数据</h3>
+            <button class="btn" onclick="loadCurrentVideos()">加载当前视频</button>
+            <div id="current-videos"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 添加测试数据</h3>
+            <button class="btn" onclick="addTestVideos()">添加测试视频</button>
+            <div id="test-data-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 重置数据测试</h3>
+            <div class="status warning">
+                ⚠️ <strong>警告：</strong>此操作将删除所有视频数据，请谨慎操作！
+            </div>
+            <button class="btn danger" onclick="testResetVideos()" id="reset-btn">
+                🗑️ 测试重置所有视频数据
+            </button>
+            <div id="reset-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 验证重置结果</h3>
+            <button class="btn" onclick="verifyReset()">验证重置结果</button>
+            <div id="verify-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>6. 测试日志</h3>
+            <button class="btn" onclick="clearLog()">清空日志</button>
+            <div id="test-log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3006/api';
+        let testLog = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testLog.push(logMessage);
+            
+            const logElement = document.getElementById('test-log');
+            logElement.textContent = testLog.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logMessage);
+        }
+
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const url = `${API_BASE_URL}${endpoint}`;
+                const config = {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers,
+                    },
+                    ...options,
+                };
+
+                log(`API请求: ${config.method || 'GET'} ${url}`);
+                
+                const response = await fetch(url, config);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                log(`API响应成功: ${JSON.stringify(data)}`);
+                return data;
+            } catch (error) {
+                log(`API请求失败: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function checkConnection() {
+            try {
+                showStatus('connection-status', '正在检查连接...', 'info');
+                
+                const response = await apiRequest('/health');
+                
+                if (response.success) {
+                    showStatus('connection-status', '✅ API连接正常', 'success');
+                    log('API连接检查成功');
+                } else {
+                    showStatus('connection-status', '❌ API连接异常', 'error');
+                    log('API连接检查失败');
+                }
+            } catch (error) {
+                showStatus('connection-status', `❌ 连接失败: ${error.message}`, 'error');
+                log(`连接检查失败: ${error.message}`);
+            }
+        }
+
+        async function loadCurrentVideos() {
+            try {
+                showStatus('current-videos', '正在加载视频数据...', 'info');
+                
+                const response = await apiRequest('/videos?userId=user_demo_001&limit=50');
+                
+                if (response.success && response.data) {
+                    const videos = response.data.videos || [];
+                    
+                    if (videos.length === 0) {
+                        showStatus('current-videos', '📭 当前没有视频数据', 'info');
+                    } else {
+                        let videoListHtml = `<div class="status success">📹 找到 ${videos.length} 个视频</div>`;
+                        videoListHtml += '<div class="video-list">';
+                        
+                        videos.forEach(video => {
+                            videoListHtml += `
+                                <div class="video-item">
+                                    <h4>${video.title || '未命名视频'}</h4>
+                                    <p>ID: ${video.id}</p>
+                                    <p>分类: ${video.category}</p>
+                                    <p>时长: ${video.duration}秒</p>
+                                    <p>观看: ${video.view_count}</p>
+                                    <p>创建: ${new Date(video.created_at).toLocaleString()}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        videoListHtml += '</div>';
+                        document.getElementById('current-videos').innerHTML = videoListHtml;
+                    }
+                    
+                    log(`加载视频数据成功，共 ${videos.length} 个视频`);
+                } else {
+                    showStatus('current-videos', '❌ 加载视频数据失败', 'error');
+                    log('加载视频数据失败');
+                }
+            } catch (error) {
+                showStatus('current-videos', `❌ 加载失败: ${error.message}`, 'error');
+                log(`加载视频数据失败: ${error.message}`);
+            }
+        }
+
+        async function addTestVideos() {
+            try {
+                showStatus('test-data-status', '正在添加测试视频...', 'info');
+                
+                const testVideos = [
+                    {
+                        user_id: 'user_demo_001',
+                        title: '测试视频1 - 生活记录',
+                        description: '这是一个测试视频，用于验证重置功能',
+                        category: 'lifestyle',
+                        tags: ['测试', '生活'],
+                        duration: 120,
+                        video_url: 'data:video/mp4;base64,test_video_data_1',
+                        thumbnail_url: 'data:image/jpeg;base64,test_thumbnail_1'
+                    },
+                    {
+                        user_id: 'user_demo_001',
+                        title: '测试视频2 - 技术分享',
+                        description: '另一个测试视频',
+                        category: 'tech',
+                        tags: ['测试', '技术'],
+                        duration: 180,
+                        video_url: 'data:video/mp4;base64,test_video_data_2',
+                        thumbnail_url: 'data:image/jpeg;base64,test_thumbnail_2'
+                    },
+                    {
+                        user_id: 'user_demo_001',
+                        title: '测试视频3 - 娱乐内容',
+                        description: '第三个测试视频',
+                        category: 'entertainment',
+                        tags: ['测试', '娱乐'],
+                        duration: 90,
+                        video_url: 'data:video/mp4;base64,test_video_data_3',
+                        thumbnail_url: 'data:image/jpeg;base64,test_thumbnail_3'
+                    }
+                ];
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const video of testVideos) {
+                    try {
+                        const response = await apiRequest('/videos', {
+                            method: 'POST',
+                            body: JSON.stringify(video)
+                        });
+                        
+                        if (response.success) {
+                            successCount++;
+                            log(`测试视频创建成功: ${video.title}`);
+                        } else {
+                            errorCount++;
+                            log(`测试视频创建失败: ${video.title} - ${response.error}`);
+                        }
+                    } catch (error) {
+                        errorCount++;
+                        log(`测试视频创建异常: ${video.title} - ${error.message}`);
+                    }
+                }
+
+                if (errorCount === 0) {
+                    showStatus('test-data-status', `✅ 成功添加 ${successCount} 个测试视频`, 'success');
+                } else {
+                    showStatus('test-data-status', `⚠️ 添加完成：成功 ${successCount} 个，失败 ${errorCount} 个`, 'warning');
+                }
+                
+                log(`测试数据添加完成：成功 ${successCount} 个，失败 ${errorCount} 个`);
+                
+                // 自动刷新视频列表
+                setTimeout(loadCurrentVideos, 1000);
+                
+            } catch (error) {
+                showStatus('test-data-status', `❌ 添加测试数据失败: ${error.message}`, 'error');
+                log(`添加测试数据失败: ${error.message}`);
+            }
+        }
+
+        async function testResetVideos() {
+            try {
+                const resetBtn = document.getElementById('reset-btn');
+                resetBtn.disabled = true;
+                resetBtn.innerHTML = '<div class="loading"></div> 重置中...';
+                
+                showStatus('reset-status', '🚨 正在重置所有视频数据...', 'warning');
+                log('开始重置所有视频数据');
+                
+                const response = await apiRequest('/videos/reset/all', {
+                    method: 'DELETE',
+                    body: JSON.stringify({
+                        user_id: 'user_demo_001',
+                        confirm_token: 'RESET_ALL_VIDEOS_CONFIRM'
+                    })
+                });
+                
+                if (response.success && response.data) {
+                    const { deletedCount, userId } = response.data;
+                    showStatus('reset-status', 
+                        `✅ 重置成功！删除了 ${deletedCount} 个视频 (用户: ${userId})`, 
+                        'success'
+                    );
+                    log(`重置成功：删除了 ${deletedCount} 个视频`);
+                    
+                    // 自动验证重置结果
+                    setTimeout(verifyReset, 1000);
+                } else {
+                    showStatus('reset-status', `❌ 重置失败: ${response.error || '未知错误'}`, 'error');
+                    log(`重置失败: ${response.error || '未知错误'}`);
+                }
+                
+            } catch (error) {
+                showStatus('reset-status', `❌ 重置异常: ${error.message}`, 'error');
+                log(`重置异常: ${error.message}`);
+            } finally {
+                const resetBtn = document.getElementById('reset-btn');
+                resetBtn.disabled = false;
+                resetBtn.innerHTML = '🗑️ 测试重置所有视频数据';
+            }
+        }
+
+        async function verifyReset() {
+            try {
+                showStatus('verify-status', '正在验证重置结果...', 'info');
+                log('开始验证重置结果');
+                
+                // 检查视频数据
+                const videoResponse = await apiRequest('/videos?userId=user_demo_001&limit=50');
+                
+                if (videoResponse.success && videoResponse.data) {
+                    const videos = videoResponse.data.videos || [];
+                    
+                    if (videos.length === 0) {
+                        showStatus('verify-status', '✅ 验证成功：所有视频数据已被清空', 'success');
+                        log('验证成功：视频数据已完全清空');
+                    } else {
+                        showStatus('verify-status', 
+                            `⚠️ 验证异常：仍有 ${videos.length} 个视频存在`, 
+                            'warning'
+                        );
+                        log(`验证异常：仍有 ${videos.length} 个视频存在`);
+                    }
+                } else {
+                    showStatus('verify-status', '❌ 验证失败：无法获取视频数据', 'error');
+                    log('验证失败：无法获取视频数据');
+                }
+                
+            } catch (error) {
+                showStatus('verify-status', `❌ 验证异常: ${error.message}`, 'error');
+                log(`验证异常: ${error.message}`);
+            }
+        }
+
+        function clearLog() {
+            testLog = [];
+            document.getElementById('test-log').textContent = '';
+        }
+
+        // 页面加载时自动检查连接
+        window.onload = function() {
+            log('视频数据重置功能测试页面已加载');
+            checkConnection();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频删除功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .delete-button {
+            background: #dc3545;
+        }
+        .delete-button:hover {
+            background: #c82333;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .video-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            background: #f9f9f9;
+        }
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .video-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .video-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .video-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ 视频删除功能测试</h1>
+        <p>测试个人作品视频删除功能的完整流程</p>
+
+        <!-- 测试1: 检查API连接 -->
+        <div class="test-section">
+            <div class="test-title">1. API连接测试</div>
+            <button class="test-button" onclick="testApiConnection()">检查API连接状态</button>
+            <div id="api-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 测试2: 获取用户视频列表 -->
+        <div class="test-section">
+            <div class="test-title">2. 获取用户视频列表</div>
+            <button class="test-button" onclick="loadUserVideos()">加载用户视频</button>
+            <div id="videos-result" class="result" style="display: none;"></div>
+            <div id="video-list" class="video-list"></div>
+        </div>
+
+        <!-- 测试3: 删除视频功能 -->
+        <div class="test-section">
+            <div class="test-title">3. 删除视频功能测试</div>
+            <p>选择上面列表中的视频进行删除测试</p>
+            <div id="delete-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 测试4: 权限验证 -->
+        <div class="test-section">
+            <div class="test-title">4. 权限验证测试</div>
+            <button class="test-button" onclick="testDeletePermission()">测试删除他人视频</button>
+            <div id="permission-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 测试5: 错误处理 -->
+        <div class="test-section">
+            <div class="test-title">5. 错误处理测试</div>
+            <button class="test-button" onclick="testDeleteNonExistent()">删除不存在的视频</button>
+            <button class="test-button" onclick="testDeleteWithoutAuth()">无权限删除测试</button>
+            <div id="error-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3006/api';
+        let userVideos = [];
+
+        // 显示结果
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        // 测试API连接
+        async function testApiConnection() {
+            try {
+                showResult('api-result', '正在检查API连接...', 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showResult('api-result', `✅ API连接正常\n响应: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult('api-result', `❌ API连接异常\n状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('api-result', `❌ API连接失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 加载用户视频
+        async function loadUserVideos() {
+            try {
+                showResult('videos-result', '正在加载用户视频...', 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/videos?userId=user_demo_001`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    userVideos = data.data.videos || [];
+                    showResult('videos-result', `✅ 成功加载 ${userVideos.length} 个视频`, 'success');
+                    renderVideoList();
+                } else {
+                    showResult('videos-result', `❌ 加载视频失败\n错误: ${data.error || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showResult('videos-result', `❌ 加载视频失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 渲染视频列表
+        function renderVideoList() {
+            const container = document.getElementById('video-list');
+            container.innerHTML = '';
+            
+            if (userVideos.length === 0) {
+                container.innerHTML = '<p>暂无视频</p>';
+                return;
+            }
+            
+            userVideos.forEach(video => {
+                const videoElement = document.createElement('div');
+                videoElement.className = 'video-item';
+                videoElement.innerHTML = `
+                    <div class="video-title">${video.title}</div>
+                    <div class="video-meta">
+                        ID: ${video.id}<br>
+                        分类: ${video.category}<br>
+                        观看: ${video.view_count} 次<br>
+                        时长: ${video.duration}s
+                    </div>
+                    <div class="video-actions">
+                        <button class="test-button delete-button" onclick="deleteVideo('${video.id}', '${video.title}')">
+                            删除
+                        </button>
+                    </div>
+                `;
+                container.appendChild(videoElement);
+            });
+        }
+
+        // 删除视频
+        async function deleteVideo(videoId, videoTitle) {
+            if (!confirm(`确定要删除视频 "${videoTitle}" 吗？`)) {
+                return;
+            }
+            
+            try {
+                showResult('delete-result', `正在删除视频: ${videoTitle}...`, 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/videos/${videoId}?user_id=user_demo_001`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showResult('delete-result', `✅ 视频删除成功\n消息: ${data.message}`, 'success');
+                    // 重新加载视频列表
+                    await loadUserVideos();
+                } else {
+                    showResult('delete-result', `❌ 视频删除失败\n错误: ${data.error || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showResult('delete-result', `❌ 视频删除失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试删除权限
+        async function testDeletePermission() {
+            try {
+                showResult('permission-result', '正在测试权限验证...', 'info');
+                
+                // 尝试删除一个视频但使用错误的用户ID
+                if (userVideos.length === 0) {
+                    showResult('permission-result', '❌ 请先加载视频列表', 'error');
+                    return;
+                }
+                
+                const testVideoId = userVideos[0].id;
+                const response = await fetch(`${API_BASE_URL}/videos/${testVideoId}?user_id=wrong_user_id`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.status === 403) {
+                    showResult('permission-result', `✅ 权限验证正常\n状态: ${response.status}\n消息: ${data.error}`, 'success');
+                } else {
+                    showResult('permission-result', `❌ 权限验证异常\n状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('permission-result', `❌ 权限测试失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试删除不存在的视频
+        async function testDeleteNonExistent() {
+            try {
+                showResult('error-result', '正在测试删除不存在的视频...', 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/videos/non_existent_video_id?user_id=user_demo_001`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.status === 404) {
+                    showResult('error-result', `✅ 错误处理正常\n状态: ${response.status}\n消息: ${data.error}`, 'success');
+                } else {
+                    showResult('error-result', `❌ 错误处理异常\n状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('error-result', `❌ 错误测试失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试无权限删除
+        async function testDeleteWithoutAuth() {
+            try {
+                showResult('error-result', '正在测试无权限删除...', 'info');
+                
+                if (userVideos.length === 0) {
+                    showResult('error-result', '❌ 请先加载视频列表', 'error');
+                    return;
+                }
+                
+                const testVideoId = userVideos[0].id;
+                const response = await fetch(`${API_BASE_URL}/videos/${testVideoId}`, {
+                    method: 'DELETE'
+                    // 不传递user_id参数
+                });
+                const data = await response.json();
+                
+                if (response.status === 403 || response.status === 400) {
+                    showResult('error-result', `✅ 权限控制正常\n状态: ${response.status}\n消息: ${data.error}`, 'success');
+                } else {
+                    showResult('error-result', `❌ 权限控制异常\n状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('error-result', `❌ 权限测试失败\n错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动测试API连接
+        window.onload = function() {
+            testApiConnection();
+        };
+    </script>
+</body>
+</html>

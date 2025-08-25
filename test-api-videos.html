@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API视频数据测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .video-item {
+            border: 1px solid #ddd;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .thumbnail {
+            max-width: 200px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status-good { color: #27ae60; font-weight: bold; }
+        .status-bad { color: #e74c3c; font-weight: bold; }
+        .loading { text-align: center; padding: 50px; color: #666; }
+        .error { background: #ffe6e6; border: 1px solid #ffcccc; color: #cc0000; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API视频数据测试</h1>
+        
+        <div id="loading" class="loading">
+            正在加载API数据...
+        </div>
+        
+        <div id="videoList"></div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            try {
+                console.log('🔍 开始测试API数据...');
+                
+                // 测试API连接
+                const response = await fetch('http://localhost:3000/api/videos?limit=10');
+                const data = await response.json();
+                
+                console.log('📊 API响应:', data);
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'API请求失败');
+                }
+                
+                const videos = data.data.videos;
+                console.log('📊 获取到视频数量:', videos.length);
+                
+                // 隐藏加载提示
+                document.getElementById('loading').style.display = 'none';
+                
+                const videoListElement = document.getElementById('videoList');
+                
+                if (videos.length === 0) {
+                    videoListElement.innerHTML = '<div class="error">📭 没有找到视频数据</div>';
+                    return;
+                }
+                
+                videos.forEach((video, index) => {
+                    const hasThumbnail = !!video.thumbnail_url;
+                    const isDataUrl = hasThumbnail && video.thumbnail_url.startsWith('data:');
+                    
+                    console.log(`🎬 视频 ${index + 1}:`, {
+                        id: video.id,
+                        title: video.title,
+                        hasThumbnail,
+                        isDataUrl,
+                        thumbnailSize: hasThumbnail ? Math.round(video.thumbnail_url.length / 1024) + ' KB' : 'N/A'
+                    });
+                    
+                    const videoItem = document.createElement('div');
+                    videoItem.className = 'video-item';
+                    
+                    let statusClass = hasThumbnail ? 'status-good' : 'status-bad';
+                    let statusText = hasThumbnail ? '✅ 有缩略图' : '❌ 无缩略图';
+                    
+                    videoItem.innerHTML = `
+                        <h3>${video.title || '未命名视频'} <span class="${statusClass}">${statusText}</span></h3>
+                        <p><strong>视频ID:</strong> ${video.id}</p>
+                        <p><strong>用户ID:</strong> ${video.user_id}</p>
+                        <p><strong>缩略图类型:</strong> ${isDataUrl ? 'Base64数据' : hasThumbnail ? 'HTTP链接' : '无'}</p>
+                        <p><strong>数据大小:</strong> ${hasThumbnail ? Math.round(video.thumbnail_url.length / 1024) + ' KB' : 'N/A'}</p>
+                        <p><strong>创建时间:</strong> ${new Date(video.created_at).toLocaleString()}</p>
+                        
+                        ${hasThumbnail ? `
+                            <div>
+                                <strong>缩略图预览:</strong><br>
+                                <img src="${video.thumbnail_url}" class="thumbnail" alt="缩略图" 
+                                     onload="console.log('✅ 缩略图加载成功:', this.src.substring(0, 50) + '...')" 
+                                     onerror="console.error('❌ 缩略图加载失败:', this.src.substring(0, 50) + '...'); this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <div style="display:none; color: red;">❌ 缩略图加载失败</div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <strong>缩略图URL (前100字符):</strong>
+                                <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
+                                    ${video.thumbnail_url.substring(0, 100)}${video.thumbnail_url.length > 100 ? '...' : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    videoListElement.appendChild(videoItem);
+                });
+                
+            } catch (error) {
+                console.error('❌ API测试失败:', error);
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                const errorElement = document.createElement('div');
+                errorElement.className = 'error';
+                errorElement.innerHTML = `
+                    <strong>❌ API测试失败:</strong> ${error.message}<br>
+                    <small>请确保后端服务正在运行 (http://localhost:3000)</small>
+                `;
+                
+                document.getElementById('videoList').appendChild(errorElement);
+            }
+        }
+        
+        // 页面加载完成后开始测试
+        document.addEventListener('DOMContentLoaded', testAPI);
+    </script>
+</body>
+</html>

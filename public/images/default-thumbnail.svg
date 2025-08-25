@@ -1,0 +1,7 @@
+<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="150" fill="#e5e7eb"/>
+  <rect x="60" y="40" width="80" height="50" rx="4" fill="#9ca3af"/>
+  <circle cx="80" cy="55" r="8" fill="#6b7280"/>
+  <path d="M70 75l10-10 10 10 20-20 20 20v15H70v-15z" fill="#6b7280"/>
+  <text x="100" y="120" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif">缩略图</text>
+</svg>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生产环境API修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .log {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 生产环境API修复测试</h1>
+        
+        <div class="test-section info">
+            <h3>📋 测试说明</h3>
+            <p>此页面用于测试修复后的生产环境API，验证以下问题是否解决：</p>
+            <ul>
+                <li>✅ 修复了所有.js导入路径问题</li>
+                <li>✅ 优化了serverless错误处理</li>
+                <li>✅ 改进了数据库初始化逻辑</li>
+                <li>✅ 添加了详细的调试日志</li>
+                <li>✅ 确保所有响应都是JSON格式</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🏥 健康检查测试</h3>
+            <button onclick="testHealthCheck()">测试健康检查</button>
+            <button onclick="testVideoPublish()">测试视频发布</button>
+            <button onclick="clearLogs()">清空日志</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试日志</h3>
+            <div id="testLogs" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let logs = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logs.push(logEntry);
+            
+            const logDiv = document.getElementById('testLogs');
+            const logElement = document.createElement('div');
+            logElement.textContent = logEntry;
+            logElement.style.color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d';
+            logDiv.appendChild(logElement);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLogs() {
+            logs = [];
+            document.getElementById('testLogs').innerHTML = '';
+            document.getElementById('healthResult').innerHTML = '';
+        }
+        
+        async function testHealthCheck() {
+            log('🏥 开始健康检查测试...');
+            
+            try {
+                // 测试本地API
+                log('📡 测试本地API健康检查...');
+                const localResponse = await fetch('/api/health');
+                const localData = await localResponse.json();
+                
+                if (localResponse.ok) {
+                    log('✅ 本地API健康检查成功', 'success');
+                    log(`📊 响应数据: ${JSON.stringify(localData, null, 2)}`);
+                } else {
+                    log(`❌ 本地API健康检查失败: ${localResponse.status}`, 'error');
+                }
+                
+                // 显示结果
+                const resultDiv = document.getElementById('healthResult');
+                resultDiv.innerHTML = `
+                    <h4>健康检查结果</h4>
+                    <pre>${JSON.stringify(localData, null, 2)}</pre>
+                `;
+                resultDiv.className = 'test-section ' + (localResponse.ok ? 'success' : 'error');
+                
+            } catch (error) {
+                log(`❌ 健康检查测试失败: ${error.message}`, 'error');
+                
+                const resultDiv = document.getElementById('healthResult');
+                resultDiv.innerHTML = `
+                    <h4>健康检查错误</h4>
+                    <pre>${error.message}</pre>
+                `;
+                resultDiv.className = 'test-section error';
+            }
+        }
+        
+        async function testVideoPublish() {
+            log('🎬 开始视频发布测试...');
+            
+            try {
+                const testVideo = {
+                    title: '测试视频 - API修复验证',
+                    description: '用于验证生产环境API修复的测试视频',
+                    category: '测试',
+                    tags: ['测试', 'API修复'],
+                    duration: 30,
+                    video_url: 'data:video/mp4;base64,test',
+                    thumbnail_url: 'data:image/jpeg;base64,test'
+                };
+                
+                log('📤 发送视频发布请求...');
+                const response = await fetch('/api/videos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testVideo)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('✅ 视频发布测试成功', 'success');
+                    log(`📊 响应数据: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    log(`⚠️ 视频发布测试返回错误: ${response.status}`, 'error');
+                    log(`📊 错误详情: ${JSON.stringify(data, null, 2)}`);
+                }
+                
+            } catch (error) {
+                log(`❌ 视频发布测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 页面加载时自动运行健康检查
+        window.addEventListener('load', () => {
+            log('🚀 页面加载完成，开始自动测试...');
+            setTimeout(testHealthCheck, 1000);
+        });
+    </script>
+</body>
+</html>

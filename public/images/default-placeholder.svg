@@ -1,0 +1,7 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#f3f4f6"/>
+  <rect x="50" y="70" width="100" height="60" rx="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2"/>
+  <circle cx="75" cy="90" r="8" fill="#9ca3af"/>
+  <path d="M85 110l10-10 15 15 20-20 15 15v10H85v-10z" fill="#9ca3af"/>
+  <text x="100" y="160" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif">图片占位符</text>
+</svg>

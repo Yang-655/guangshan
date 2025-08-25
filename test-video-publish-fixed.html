@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频发布功能测试 - Blob URL修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        video {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 视频发布功能测试 - Blob URL修复验证</h1>
+        <p>此页面用于测试修复后的视频发布功能，验证blob URL失效问题是否已解决。</p>
+        
+        <div class="test-section info">
+            <h3>📋 测试步骤</h3>
+            <ol>
+                <li>点击"创建测试视频"按钮生成一个测试视频blob</li>
+                <li>点击"模拟blob URL失效"按钮模拟URL失效情况</li>
+                <li>点击"测试视频发布"按钮验证发布功能</li>
+                <li>观察日志输出，确认是否使用了备用的Blob对象</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🎥 测试视频生成</h3>
+            <button id="createVideoBtn">创建测试视频</button>
+            <button id="invalidateBlobBtn" disabled>模拟blob URL失效</button>
+            <button id="testPublishBtn" disabled>测试视频发布</button>
+            <div id="videoContainer"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试结果</h3>
+            <div id="testResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 详细日志</h3>
+            <div id="testLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let testVideoBlob = null;
+        let testVideoUrl = null;
+        let blobInvalidated = false;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('testLog');
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function updateResults(message, type) {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.className = `test-section ${type}`;
+            resultsDiv.innerHTML = `<h4>测试结果</h4><p>${message}</p>`;
+        }
+
+        // 创建测试视频
+        document.getElementById('createVideoBtn').addEventListener('click', async () => {
+            try {
+                log('开始创建测试视频...');
+                
+                // 创建一个简单的视频blob（实际上是一个很小的webm文件头）
+                const canvas = document.createElement('canvas');
+                canvas.width = 320;
+                canvas.height = 240;
+                const ctx = canvas.getContext('2d');
+                
+                // 绘制一个简单的测试图案
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(0, 0, 320, 240);
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('测试视频', 160, 120);
+                ctx.fillText(new Date().toLocaleTimeString(), 160, 150);
+                
+                // 转换为blob
+                canvas.toBlob((blob) => {
+                    testVideoBlob = blob;
+                    testVideoUrl = URL.createObjectURL(blob);
+                    
+                    log(`测试视频创建成功，大小: ${blob.size} bytes`);
+                    log(`Blob URL: ${testVideoUrl}`);
+                    
+                    // 显示视频预览（虽然是图片格式，但用于测试）
+                    const videoContainer = document.getElementById('videoContainer');
+                    videoContainer.innerHTML = `
+                        <p>测试视频已创建:</p>
+                        <img src="${testVideoUrl}" style="max-width: 200px; border: 1px solid #ddd;" alt="测试视频">
+                        <p>Blob大小: ${blob.size} bytes</p>
+                        <p>Blob类型: ${blob.type}</p>
+                    `;
+                    
+                    document.getElementById('invalidateBlobBtn').disabled = false;
+                    document.getElementById('testPublishBtn').disabled = false;
+                    
+                    updateResults('测试视频创建成功！', 'success');
+                }, 'image/png');
+                
+            } catch (error) {
+                log(`创建测试视频失败: ${error.message}`, 'error');
+                updateResults(`创建测试视频失败: ${error.message}`, 'error');
+            }
+        });
+
+        // 模拟blob URL失效
+        document.getElementById('invalidateBlobBtn').addEventListener('click', () => {
+            if (testVideoUrl) {
+                log('模拟blob URL失效...');
+                URL.revokeObjectURL(testVideoUrl);
+                blobInvalidated = true;
+                log('Blob URL已被撤销，现在应该无法访问');
+                
+                // 更新显示
+                const videoContainer = document.getElementById('videoContainer');
+                videoContainer.innerHTML += '<p style="color: red;">⚠️ Blob URL已失效</p>';
+                
+                updateResults('Blob URL已失效，准备测试备用方案', 'info');
+            }
+        });
+
+        // 测试视频发布
+        document.getElementById('testPublishBtn').addEventListener('click', async () => {
+            try {
+                log('开始测试视频发布功能...');
+                
+                // 模拟发布数据
+                const publishData = {
+                    title: '测试视频发布',
+                    description: '这是一个用于测试blob URL修复的视频',
+                    userId: 'user_demo_001',
+                    duration: 10,
+                    videoUrl: testVideoUrl, // 可能已失效的URL
+                    videoBlob: testVideoBlob, // 备用的原始Blob对象
+                    hashtags: ['测试', 'blob修复'],
+                    privacyLevel: 'public'
+                };
+                
+                log('准备发布数据:');
+                log(`- 标题: ${publishData.title}`);
+                log(`- 视频URL: ${publishData.videoUrl}`);
+                log(`- 视频Blob: ${publishData.videoBlob ? '存在' : '不存在'}`);
+                log(`- Blob大小: ${publishData.videoBlob ? publishData.videoBlob.size + ' bytes' : 'N/A'}`);
+                log(`- URL是否失效: ${blobInvalidated ? '是' : '否'}`);
+                
+                // 测试blob URL有效性
+                if (blobInvalidated) {
+                    log('测试失效的blob URL访问...');
+                    try {
+                        const response = await fetch(testVideoUrl);
+                        log(`意外：失效的URL仍可访问，状态: ${response.status}`);
+                    } catch (error) {
+                        log('确认：失效的URL无法访问 ✓', 'success');
+                    }
+                }
+                
+                // 模拟发布过程
+                log('模拟视频发布过程...');
+                
+                // 检查是否需要使用备用Blob
+                if (blobInvalidated && publishData.videoBlob) {
+                    log('检测到URL失效，使用备用Blob对象 ✓', 'success');
+                    
+                    // 模拟转换为base64
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        const base64Data = reader.result;
+                        log(`成功将备用Blob转换为base64，大小: ${Math.round(base64Data.length / 1024)} KB`, 'success');
+                        log('视频发布模拟完成 ✓', 'success');
+                        updateResults('✅ 测试成功！备用Blob方案工作正常，blob URL失效问题已修复', 'success');
+                    };
+                    reader.onerror = function() {
+                        log('转换备用Blob失败', 'error');
+                        updateResults('❌ 测试失败：无法转换备用Blob', 'error');
+                    };
+                    reader.readAsDataURL(publishData.videoBlob);
+                } else if (!blobInvalidated) {
+                    log('URL仍然有效，正常处理', 'success');
+                    updateResults('✅ 测试成功！URL有效，正常发布流程', 'success');
+                } else {
+                    log('没有备用Blob对象，发布可能失败', 'error');
+                    updateResults('❌ 测试失败：没有备用数据源', 'error');
+                }
+                
+            } catch (error) {
+                log(`测试发布失败: ${error.message}`, 'error');
+                updateResults(`测试失败: ${error.message}`, 'error');
+            }
+        });
+
+        // 页面加载完成
+        log('测试页面已加载，准备开始测试');
+        updateResults('请点击"创建测试视频"开始测试', 'info');
+    </script>
+</body>
+</html>

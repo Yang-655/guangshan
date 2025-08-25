@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 生产环境视频发布测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #22543d;
+        }
+        
+        .error {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            color: #742a2a;
+        }
+        
+        .info {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            color: #2a4365;
+        }
+        
+        .warning {
+            background: #fffbeb;
+            border: 1px solid #f6e05e;
+            color: #744210;
+        }
+        
+        .log-container {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .log-info { background: rgba(59, 130, 246, 0.1); }
+        .log-success { background: rgba(34, 197, 94, 0.1); }
+        .log-warning { background: rgba(245, 158, 11, 0.1); }
+        .log-error { background: rgba(239, 68, 68, 0.1); }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #718096;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 生产环境视频发布测试</h1>
+        
+        <div class="test-section">
+            <h2>📋 测试说明</h2>
+            <div class="info result">
+                本测试页面用于验证生产环境视频发布功能的修复效果：<br>
+                ✅ 数据库初始化修复（生产环境使用内存数据库）<br>
+                ✅ API路由配置验证<br>
+                ✅ Base64数据处理兼容性<br>
+                ✅ 详细错误日志和监控<br>
+                ✅ 缩略图处理优化
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔍 环境检测</h2>
+            <button class="button" onclick="detectEnvironment()">检测当前环境</button>
+            <div id="envResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🌐 API连接测试</h2>
+            <button class="button" onclick="testApiConnection()">测试API连接</button>
+            <button class="button" onclick="testHealthCheck()">健康检查</button>
+            <div id="apiResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎬 视频发布测试</h2>
+            <button class="button" onclick="testVideoPublish()">测试视频发布</button>
+            <button class="button" onclick="testWithThumbnail()">测试带缩略图发布</button>
+            <div id="publishResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 测试统计</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="testCount">0</div>
+                    <div class="stat-label">测试次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="successCount">0</div>
+                    <div class="stat-label">成功次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="errorCount">0</div>
+                    <div class="stat-label">失败次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgTime">0ms</div>
+                    <div class="stat-label">平均耗时</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📝 详细日志</h2>
+            <button class="button" onclick="clearLogs()">清空日志</button>
+            <div id="logContainer" class="log-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试统计
+        let testStats = {
+            total: 0,
+            success: 0,
+            error: 0,
+            times: []
+        };
+        
+        // API配置
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api' 
+            : '/api';
+        
+        // 日志系统
+        function addLog(type, message, data = null) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            
+            let logText = `[${timestamp}] ${message}`;
+            if (data) {
+                logText += '\n' + JSON.stringify(data, null, 2);
+            }
+            
+            logEntry.textContent = logText;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+        
+        function updateStats() {
+            document.getElementById('testCount').textContent = testStats.total;
+            document.getElementById('successCount').textContent = testStats.success;
+            document.getElementById('errorCount').textContent = testStats.error;
+            
+            const avgTime = testStats.times.length > 0 
+                ? Math.round(testStats.times.reduce((a, b) => a + b, 0) / testStats.times.length)
+                : 0;
+            document.getElementById('avgTime').textContent = avgTime + 'ms';
+        }
+        
+        // 环境检测
+        function detectEnvironment() {
+            const resultDiv = document.getElementById('envResult');
+            
+            const envInfo = {
+                hostname: window.location.hostname,
+                protocol: window.location.protocol,
+                port: window.location.port,
+                userAgent: navigator.userAgent,
+                apiBaseUrl: API_BASE_URL,
+                isProduction: window.location.hostname !== 'localhost',
+                timestamp: new Date().toISOString()
+            };
+            
+            addLog('info', '🔍 环境检测开始', envInfo);
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    🌍 当前环境: ${envInfo.isProduction ? '生产环境' : '开发环境'}<br>
+                    🏠 主机名: ${envInfo.hostname}<br>
+                    🔗 协议: ${envInfo.protocol}<br>
+                    🚪 端口: ${envInfo.port || '默认'}<br>
+                    📡 API地址: ${envInfo.apiBaseUrl}<br>
+                    🕐 检测时间: ${new Date().toLocaleString()}
+                </div>
+            `;
+        }
+        
+        // API连接测试
+        async function testApiConnection() {
+            const resultDiv = document.getElementById('apiResult');
+            const startTime = Date.now();
+            
+            try {
+                addLog('info', '🌐 开始API连接测试');
+                resultDiv.innerHTML = '<div class="info">正在测试API连接...</div>';
+                
+                const response = await fetch(`${API_BASE_URL}/videos?limit=1`);
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.times.push(duration);
+                
+                if (response.ok) {
+                    testStats.success++;
+                    addLog('success', '✅ API连接测试成功', { status: response.status, duration, data });
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ API连接成功！<br>
+                            状态码: ${response.status}<br>
+                            响应时间: ${duration}ms<br>
+                            数据: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    testStats.error++;
+                    addLog('error', '❌ API连接失败', { status: response.status, data });
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ API连接失败<br>
+                            状态码: ${response.status}<br>
+                            错误: ${data.error || '未知错误'}
+                        </div>
+                    `;
+                }
+                
+                updateStats();
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.error++;
+                testStats.times.push(duration);
+                
+                addLog('error', '❌ API连接异常', { error: error.message, duration });
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ API连接异常<br>
+                        错误: ${error.message}<br>
+                        耗时: ${duration}ms
+                    </div>
+                `;
+                
+                updateStats();
+            }
+        }
+        
+        // 健康检查
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('apiResult');
+            const startTime = Date.now();
+            
+            try {
+                addLog('info', '🏥 开始健康检查');
+                resultDiv.innerHTML = '<div class="info">正在进行健康检查...</div>';
+                
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                if (response.ok && data.success) {
+                    addLog('success', '✅ 健康检查通过', { duration, data });
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 服务器健康状态良好！<br>
+                            响应时间: ${duration}ms<br>
+                            消息: ${data.message}
+                        </div>
+                    `;
+                } else {
+                    addLog('warning', '⚠️ 健康检查异常', { status: response.status, data });
+                    resultDiv.innerHTML = `
+                        <div class="warning">
+                            ⚠️ 健康检查异常<br>
+                            状态: ${response.status}<br>
+                            响应: ${JSON.stringify(data)}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                addLog('error', '❌ 健康检查失败', { error: error.message, duration });
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 健康检查失败<br>
+                        错误: ${error.message}<br>
+                        耗时: ${duration}ms
+                    </div>
+                `;
+            }
+        }
+        
+        // 生成测试用的Base64缩略图
+        function generateTestThumbnail() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 240;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, 320, 240);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 320, 240);
+            
+            // 添加文字
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('测试缩略图', 160, 120);
+            ctx.font = '16px Arial';
+            ctx.fillText(new Date().toLocaleString(), 160, 150);
+            
+            return canvas.toDataURL('image/jpeg', 0.8);
+        }
+        
+        // 视频发布测试
+        async function testVideoPublish() {
+            const resultDiv = document.getElementById('publishResult');
+            const startTime = Date.now();
+            
+            try {
+                addLog('info', '🎬 开始视频发布测试');
+                resultDiv.innerHTML = '<div class="info">正在测试视频发布...</div>';
+                
+                const testData = {
+                    user_id: 'user_demo_001',
+                    title: `生产环境测试视频 ${new Date().toLocaleString()}`,
+                    description: '这是一个生产环境视频发布功能测试',
+                    category: 'test',
+                    tags: ['生产环境', '测试', '修复验证'],
+                    duration: 60,
+                    video_url: 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDE=',
+                    is_private: false
+                };
+                
+                addLog('info', '📦 发送测试数据', testData);
+                
+                const response = await fetch(`${API_BASE_URL}/videos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.times.push(duration);
+                
+                if (response.ok && data.success) {
+                    testStats.success++;
+                    addLog('success', '✅ 视频发布测试成功', { duration, videoId: data.data.id, requestId: data.requestId });
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 视频发布成功！<br>
+                            视频ID: ${data.data.id}<br>
+                            请求ID: ${data.requestId || 'N/A'}<br>
+                            处理时间: ${data.processingTime || duration}ms<br>
+                            标题: ${data.data.title}<br>
+                            分类: ${data.data.category}
+                        </div>
+                    `;
+                } else {
+                    testStats.error++;
+                    addLog('error', '❌ 视频发布失败', { status: response.status, data });
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 视频发布失败<br>
+                            状态码: ${response.status}<br>
+                            错误: ${data.error || '未知错误'}<br>
+                            请求ID: ${data.requestId || 'N/A'}<br>
+                            耗时: ${duration}ms
+                        </div>
+                    `;
+                }
+                
+                updateStats();
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.error++;
+                testStats.times.push(duration);
+                
+                addLog('error', '❌ 视频发布异常', { error: error.message, duration });
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 视频发布异常<br>
+                        错误: ${error.message}<br>
+                        耗时: ${duration}ms
+                    </div>
+                `;
+                
+                updateStats();
+            }
+        }
+        
+        // 带缩略图的视频发布测试
+        async function testWithThumbnail() {
+            const resultDiv = document.getElementById('publishResult');
+            const startTime = Date.now();
+            
+            try {
+                addLog('info', '🖼️ 开始带缩略图的视频发布测试');
+                resultDiv.innerHTML = '<div class="info">正在测试带缩略图的视频发布...</div>';
+                
+                const thumbnailData = generateTestThumbnail();
+                
+                const testData = {
+                    user_id: 'user_demo_001',
+                    title: `带缩略图测试视频 ${new Date().toLocaleString()}`,
+                    description: '这是一个带缩略图的生产环境视频发布功能测试',
+                    category: 'test',
+                    tags: ['生产环境', '缩略图', '测试'],
+                    duration: 90,
+                    video_url: 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDE=',
+                    thumbnail_url: thumbnailData,
+                    is_private: false
+                };
+                
+                addLog('info', '📦 发送带缩略图的测试数据', {
+                    ...testData,
+                    thumbnail_url: `${thumbnailData.substring(0, 50)}... (${Math.round(thumbnailData.length / 1024)} KB)`
+                });
+                
+                const response = await fetch(`${API_BASE_URL}/videos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.times.push(duration);
+                
+                if (response.ok && data.success) {
+                    testStats.success++;
+                    addLog('success', '✅ 带缩略图视频发布成功', { 
+                        duration, 
+                        videoId: data.data.id, 
+                        requestId: data.requestId,
+                        hasThumbnail: !!data.data.thumbnail_url
+                    });
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 带缩略图视频发布成功！<br>
+                            视频ID: ${data.data.id}<br>
+                            请求ID: ${data.requestId || 'N/A'}<br>
+                            处理时间: ${data.processingTime || duration}ms<br>
+                            标题: ${data.data.title}<br>
+                            缩略图: ${data.data.thumbnail_url ? '✅ 已保存' : '❌ 未保存'}<br>
+                            缩略图大小: ${data.data.thumbnail_url ? Math.round(data.data.thumbnail_url.length / 1024) + ' KB' : 'N/A'}
+                        </div>
+                    `;
+                } else {
+                    testStats.error++;
+                    addLog('error', '❌ 带缩略图视频发布失败', { status: response.status, data });
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 带缩略图视频发布失败<br>
+                            状态码: ${response.status}<br>
+                            错误: ${data.error || '未知错误'}<br>
+                            请求ID: ${data.requestId || 'N/A'}<br>
+                            耗时: ${duration}ms
+                        </div>
+                    `;
+                }
+                
+                updateStats();
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                testStats.total++;
+                testStats.error++;
+                testStats.times.push(duration);
+                
+                addLog('error', '❌ 带缩略图视频发布异常', { error: error.message, duration });
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 带缩略图视频发布异常<br>
+                        错误: ${error.message}<br>
+                        耗时: ${duration}ms
+                    </div>
+                `;
+                
+                updateStats();
+            }
+        }
+        
+        // 页面加载时自动检测环境
+        window.onload = function() {
+            detectEnvironment();
+            addLog('info', '🚀 生产环境测试页面已加载');
+        };
+    </script>
+</body>
+</html>

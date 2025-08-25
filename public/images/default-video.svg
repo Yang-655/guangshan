@@ -1,0 +1,6 @@
+<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="150" fill="#374151"/>
+  <circle cx="100" cy="75" r="25" fill="#6b7280"/>
+  <path d="M90 60l20 15-20 15v-30z" fill="#f9fafb"/>
+  <text x="100" y="130" text-anchor="middle" fill="#9ca3af" font-size="12" font-family="sans-serif">视频内容</text>
+</svg>
