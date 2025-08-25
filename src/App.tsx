@@ -91,8 +91,7 @@ export default function App() {
       <Router>
         <div className="relative">
           <Routes>
-          <Route path="/" element={<TestPage />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/camera" element={<Camera />} />
           <Route path="/messages" element={<Messages />} />
