@@ -28,6 +28,7 @@ import RewardManage from "@/pages/RewardManage";
 import CreditCenter from "@/pages/CreditCenter";
 import VideoDetail from "@/pages/VideoDetail";
 import VideoDebug from "@/pages/VideoDebug";
+import TestPage from "@/pages/TestPage";
 import DraftManager from "@/components/DraftManager";
 import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 import TabNavigation from "@/components/TabNavigation";
@@ -35,26 +36,63 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ToastManager, useToast } from "@/components/Toast";
 import IncomingCallNotification from './components/IncomingCallNotification';
 import { Toaster } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
   const { toasts, removeToast } = useToast();
+  const [isAppReady, setIsAppReady] = useState(false);
 
   useEffect(() => {
+    // 标记应用已准备就绪
+    setIsAppReady(true);
     console.log('App component mounted');
     console.log('Environment variables:', {
       API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
       APP_NAME: import.meta.env.VITE_APP_NAME,
-      NODE_ENV: import.meta.env.NODE_ENV
+      NODE_ENV: import.meta.env.NODE_ENV,
+      BASE_URL: import.meta.env.BASE_URL,
+      MODE: import.meta.env.MODE
     });
+    console.log('Current location:', window.location.href);
+    console.log('Document ready state:', document.readyState);
+    
+    // 添加全局错误监听
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error caught:', event.error);
+    };
+    
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+    };
+    
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
   }, []);
+
+  // 显示加载状态
+  if (!isAppReady) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>正在加载应用...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
       <Router>
         <div className="relative">
           <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<TestPage />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/camera" element={<Camera />} />
           <Route path="/messages" element={<Messages />} />
@@ -84,6 +122,7 @@ export default function App() {
           <Route path="/fraud-shield" element={<FraudShield />} />
           <Route path="/video/:videoId" element={<VideoDetail />} />
           <Route path="/debug/video" element={<VideoDebug />} />
+          <Route path="/test" element={<TestPage />} />
           <Route path="/drafts" element={<DraftManager onClose={() => window.history.back()} />} />
           <Route path="/terms" element={<div className="text-center text-xl p-8">服务条款 - 开发中</div>} />
           <Route path="/privacy" element={<div className="text-center text-xl p-8">隐私政策 - 开发中</div>} />
