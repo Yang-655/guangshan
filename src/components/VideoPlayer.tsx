@@ -502,8 +502,237 @@ const VideoPlayer = forwardRef<{ togglePlay: () => void }, VideoPlayerProps>(({
     togglePlay
   }), [isPlaying]);
 
-  // 优化进度条交互，提升响应性
+  // 进度条拖动相关状态
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartTime, setDragStartTime] = useState(0);
+  const [previewTime, setPreviewTime] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+  
+  // 上下滑动相关状态
+  const [isVerticalDragging, setIsVerticalDragging] = useState(false);
+  const [verticalDragType, setVerticalDragType] = useState<'volume' | 'brightness' | null>(null);
+  const [dragStartY, setDragStartY] = useState(0);
+  const [dragStartValue, setDragStartValue] = useState(0);
+  const [brightness, setBrightness] = useState(1);
+  const [showVolumeIndicator, setShowVolumeIndicator] = useState(false);
+  const [showBrightnessIndicator, setShowBrightnessIndicator] = useState(false);
+
+  // 优化进度条交互，添加拖动支持
+  const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const video = videoRef.current;
+    const progressBar = progressRef.current;
+    if (!video || !progressBar || !duration) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+    const newTime = percentage * duration;
+    
+    setIsDragging(true);
+    setDragStartX(e.clientX);
+    setDragStartTime(newTime);
+    setPreviewTime(newTime);
+    setShowPreview(true);
+    
+    // 立即更新视频时间
+    video.currentTime = newTime;
+  };
+
+  const handleProgressMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const video = videoRef.current;
+    const progressBar = progressRef.current;
+    if (!video || !progressBar || !duration) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const moveX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, moveX / rect.width));
+    const newTime = percentage * duration;
+    
+    setPreviewTime(newTime);
+    video.currentTime = newTime;
+  };
+
+  const handleProgressMouseUp = () => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    setShowPreview(false);
+  };
+
+  // 处理上下滑动手势
+  const handleVideoMouseDown = (e: React.MouseEvent) => {
+    if (isLongPressing || isDragging) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const isLeftSide = x < rect.width / 2;
+    
+    setIsVerticalDragging(true);
+    setVerticalDragType(isLeftSide ? 'brightness' : 'volume');
+    setDragStartY(e.clientY);
+    setDragStartValue(isLeftSide ? brightness : volume);
+  };
+
+  const handleVideoMouseMove = (e: MouseEvent) => {
+    if (!isVerticalDragging || !verticalDragType) return;
+    
+    const deltaY = dragStartY - e.clientY;
+    const sensitivity = 0.005;
+    const delta = deltaY * sensitivity;
+    
+    if (verticalDragType === 'volume') {
+      const newVolume = Math.max(0, Math.min(1, dragStartValue + delta));
+      handleVolumeChange(newVolume);
+      setShowVolumeIndicator(true);
+    } else if (verticalDragType === 'brightness') {
+      const newBrightness = Math.max(0.2, Math.min(2, dragStartValue + delta));
+      setBrightness(newBrightness);
+      setShowBrightnessIndicator(true);
+    }
+  };
+
+  const handleVideoMouseUp = () => {
+    if (isVerticalDragging) {
+      setIsVerticalDragging(false);
+      setVerticalDragType(null);
+      
+      // 延迟隐藏指示器
+      setTimeout(() => {
+        setShowVolumeIndicator(false);
+        setShowBrightnessIndicator(false);
+      }, 1000);
+    }
+  };
+
+  // 触摸事件处理
+  const handleProgressTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const video = videoRef.current;
+    const progressBar = progressRef.current;
+    if (!video || !progressBar || !duration) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, touchX / rect.width));
+    const newTime = percentage * duration;
+    
+    setIsDragging(true);
+    setDragStartX(touch.clientX);
+    setDragStartTime(newTime);
+    setPreviewTime(newTime);
+    setShowPreview(true);
+    
+    video.currentTime = newTime;
+  };
+
+  const handleVideoTouchStart = (e: React.TouchEvent) => {
+    if (isLongPressing || isDragging) return;
+    
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const isLeftSide = x < rect.width / 2;
+    
+    setIsVerticalDragging(true);
+    setVerticalDragType(isLeftSide ? 'brightness' : 'volume');
+    setDragStartY(touch.clientY);
+    setDragStartValue(isLeftSide ? brightness : volume);
+  };
+
+  const handleGlobalTouchMove = (e: TouchEvent) => {
+    if (e.touches.length === 0) return;
+    
+    const touch = e.touches[0];
+    
+    // 进度条拖动
+    if (isDragging) {
+      const video = videoRef.current;
+      const progressBar = progressRef.current;
+      if (!video || !progressBar || !duration) return;
+
+      const rect = progressBar.getBoundingClientRect();
+      const moveX = touch.clientX - rect.left;
+      const percentage = Math.max(0, Math.min(1, moveX / rect.width));
+      const newTime = percentage * duration;
+      
+      setPreviewTime(newTime);
+      video.currentTime = newTime;
+    }
+    
+    // 垂直滑动
+    if (isVerticalDragging && verticalDragType) {
+      const deltaY = dragStartY - touch.clientY;
+      const sensitivity = 0.005;
+      const delta = deltaY * sensitivity;
+      
+      if (verticalDragType === 'volume') {
+        const newVolume = Math.max(0, Math.min(1, dragStartValue + delta));
+        handleVolumeChange(newVolume);
+        setShowVolumeIndicator(true);
+      } else if (verticalDragType === 'brightness') {
+        const newBrightness = Math.max(0.2, Math.min(2, dragStartValue + delta));
+        setBrightness(newBrightness);
+        setShowBrightnessIndicator(true);
+      }
+    }
+  };
+
+  const handleGlobalTouchEnd = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setShowPreview(false);
+    }
+    
+    if (isVerticalDragging) {
+      setIsVerticalDragging(false);
+      setVerticalDragType(null);
+      
+      setTimeout(() => {
+        setShowVolumeIndicator(false);
+        setShowBrightnessIndicator(false);
+      }, 1000);
+    }
+  };
+
+  // 全局鼠标和触摸事件监听
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      handleProgressMouseMove(e);
+      handleVideoMouseMove(e);
+    };
+    
+    const handleGlobalMouseUp = () => {
+      handleProgressMouseUp();
+      handleVideoMouseUp();
+    };
+    
+    if (isDragging || isVerticalDragging) {
+      // 鼠标事件
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      
+      // 触摸事件
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      document.addEventListener('touchend', handleGlobalTouchEnd);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [isDragging, isVerticalDragging, dragStartY, dragStartValue, verticalDragType, brightness, volume]);
+
+  // 优化进度条点击（非拖动时）
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) return; // 拖动时不处理点击
+    
     const video = videoRef.current;
     const progressBar = progressRef.current;
     if (!video || !progressBar || !duration) return;
@@ -642,13 +871,23 @@ const VideoPlayer = forwardRef<{ togglePlay: () => void }, VideoPlayerProps>(({
         autoPlay={autoPlay}
         loop={loop}
         muted={isMuted}
-        className={`w-full h-full object-cover cursor-pointer select-none ${isLongPressing ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''}`}
-        style={style}
+        className={`w-full h-full object-cover cursor-pointer select-none transition-all duration-300 ${isLongPressing ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''} ${isDragging ? 'cursor-grabbing' : ''} ${isVerticalDragging ? 'cursor-ns-resize' : ''}`}
+        style={{
+          ...style,
+          filter: `brightness(${brightness})`,
+          transition: isVerticalDragging ? 'none' : 'filter 0.3s ease'
+        }}
         onClick={handleVideoInteraction}
-        onMouseDown={handleLongPressStart}
+        onMouseDown={(e) => {
+          handleLongPressStart(e);
+          handleVideoMouseDown(e);
+        }}
         onMouseUp={handleLongPressEnd}
         onMouseLeave={handleLongPressEnd}
-        onTouchStart={handleLongPressStart}
+        onTouchStart={(e) => {
+          handleLongPressStart(e);
+          handleVideoTouchStart(e);
+        }}
         onTouchEnd={handleLongPressEnd}
         onTouchCancel={handleLongPressEnd}
         onContextMenu={(e) => e.preventDefault()}
@@ -724,37 +963,49 @@ const VideoPlayer = forwardRef<{ togglePlay: () => void }, VideoPlayerProps>(({
       )}
 
       {/* Controls */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 transition-opacity duration-300 ${
+      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-4 transition-all duration-500 ease-in-out backdrop-blur-sm ${
         isImmersiveMode 
-          ? (showControlsInImmersive ? 'opacity-100' : 'opacity-0')
-          : (showControls ? 'opacity-100' : 'opacity-0')
+          ? (showControlsInImmersive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4')
+          : (showControls ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-2')
       }`}>
         {/* Progress Bar with Time Display */}
         <div className="mb-4 flex items-center space-x-3">
           <div 
             ref={progressRef}
-            className="flex-1 h-1 bg-gray-600 rounded-full cursor-pointer relative"
+            className={`flex-1 h-2 bg-gray-600 rounded-full cursor-pointer relative transition-all duration-200 hover:h-3 ${isDragging ? 'h-3' : ''}`}
             onClick={handleProgressClick}
+            onMouseDown={handleProgressMouseDown}
+            onTouchStart={handleProgressTouchStart}
           >
             {/* Buffered Progress */}
             <div 
-              className="absolute top-0 left-0 h-full bg-gray-400 rounded-full"
-              style={{ width: `${buffered}%` }}
+              className="absolute top-0 left-0 h-full bg-gray-400 rounded-full transition-all duration-300"
+              style={{ width: `${buffered}%`, opacity: 0.7 }}
             />
             {/* Current Progress */}
             <div 
-              className="absolute top-0 left-0 h-full bg-red-500 rounded-full"
+              className="absolute top-0 left-0 h-full bg-red-500 rounded-full transition-all duration-200"
               style={{ width: `${progressPercentage}%` }}
             />
             {/* Progress Handle */}
             <div 
-              className="absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full"
-              style={{ left: `${progressPercentage}%`, marginLeft: '-6px' }}
+              className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-red-500 rounded-full transition-all duration-200 shadow-lg ${isDragging || showPreview ? 'opacity-100 scale-125' : 'opacity-0 hover:opacity-100'}`}
+              style={{ left: `${progressPercentage}%`, marginLeft: '-8px' }}
             />
+            
+            {/* 拖动预览时间提示 */}
+            {showPreview && (
+              <div 
+                className="absolute bottom-6 transform -translate-x-1/2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded transition-opacity duration-200"
+                style={{ left: `${(previewTime / duration) * 100}%` }}
+              >
+                {formatTime(previewTime)}
+              </div>
+            )}
           </div>
           
           {/* 时间显示 - 移到进度条右边 */}
-          <span className="text-white text-sm bg-black bg-opacity-50 px-2 py-1 rounded whitespace-nowrap">
+          <span className="text-white text-sm bg-black bg-opacity-30 px-2 py-1 rounded whitespace-nowrap transition-all duration-300">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
@@ -793,6 +1044,44 @@ const VideoPlayer = forwardRef<{ togglePlay: () => void }, VideoPlayerProps>(({
             onVoiceEnd={(text) => console.log('播放结束:', text)}
             onError={(error) => console.error('语音错误:', error)}
           />
+        </div>
+      )}
+      
+      {/* 音量指示器 */}
+      {showVolumeIndicator && (
+        <div className="absolute top-1/2 right-8 transform -translate-y-1/2 z-40 transition-all duration-300">
+          <div className="bg-black bg-opacity-70 text-white px-4 py-3 rounded-lg shadow-lg">
+            <div className="flex items-center space-x-2">
+              <Volume2 className="w-5 h-5" />
+              <div className="w-20 h-2 bg-gray-600 rounded-full">
+                <div 
+                  className="h-full bg-white rounded-full transition-all duration-200"
+                  style={{ width: `${volume * 100}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium">{Math.round(volume * 100)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 亮度指示器 */}
+      {showBrightnessIndicator && (
+        <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-40 transition-all duration-300">
+          <div className="bg-black bg-opacity-70 text-white px-4 py-3 rounded-lg shadow-lg">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <div className="w-20 h-2 bg-gray-600 rounded-full">
+                <div 
+                  className="h-full bg-yellow-400 rounded-full transition-all duration-200"
+                  style={{ width: `${((brightness - 0.2) / 1.8) * 100}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium">{Math.round(brightness * 100)}%</span>
+            </div>
+          </div>
         </div>
       )}
       
