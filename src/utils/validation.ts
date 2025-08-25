@@ -5,7 +5,7 @@ export interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
-  custom?: (value: any) => string | null;
+  custom?: (value: string | number) => string | null;
 }
 
 export interface ValidationResult {
@@ -124,7 +124,7 @@ export const validationRules = {
 };
 
 // 验证单个字段
-export function validateField(value: any, rule: ValidationRule): string | null {
+export function validateField(value: string | number | null | undefined, rule: ValidationRule): string | null {
   // 必填验证
   if (rule.required && (!value || (typeof value === 'string' && !value.trim()))) {
     return '此字段为必填项';
@@ -135,18 +135,21 @@ export function validateField(value: any, rule: ValidationRule): string | null {
     return null;
   }
 
+  // 转换为字符串进行验证
+  const stringValue = String(value);
+
   // 最小长度验证
-  if (rule.minLength && value.length < rule.minLength) {
+  if (rule.minLength && stringValue.length < rule.minLength) {
     return `至少需要${rule.minLength}个字符`;
   }
 
   // 最大长度验证
-  if (rule.maxLength && value.length > rule.maxLength) {
+  if (rule.maxLength && stringValue.length > rule.maxLength) {
     return `不能超过${rule.maxLength}个字符`;
   }
 
   // 正则表达式验证
-  if (rule.pattern && !rule.pattern.test(value)) {
+  if (rule.pattern && !rule.pattern.test(stringValue)) {
     return '格式不正确';
   }
 
@@ -160,7 +163,7 @@ export function validateField(value: any, rule: ValidationRule): string | null {
 
 // 验证整个表单
 export function validateForm(
-  data: Record<string, any>,
+  data: Record<string, string | number | null | undefined>,
   rules: Record<string, ValidationRule>
 ): ValidationResult {
   const errors: Record<string, string> = {};
@@ -182,14 +185,14 @@ export function validateForm(
 import { useState, useCallback } from 'react';
 
 export function useFormValidation(
-  initialData: Record<string, any>,
+  initialData: Record<string, string | number | null | undefined>,
   rules: Record<string, ValidationRule>
 ) {
   const [data, setData] = useState(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  const validateField = useCallback((field: string, value: any) => {
+  const validateSingleField = useCallback((field: string, value: string | number | null | undefined) => {
     const rule = rules[field];
     if (!rule) return null;
 
@@ -201,19 +204,19 @@ export function useFormValidation(
     return error;
   }, [rules]);
 
-  const updateField = useCallback((field: string, value: any) => {
+  const updateField = useCallback((field: string, value: string | number | null | undefined) => {
     setData(prev => ({ ...prev, [field]: value }));
     
     // 如果字段已经被触摸过，则实时验证
     if (touched[field]) {
-      validateField(field, value);
+      validateSingleField(field, value);
     }
-  }, [touched, validateField]);
+  }, [touched, validateSingleField]);
 
   const touchField = useCallback((field: string) => {
     setTouched(prev => ({ ...prev, [field]: true }));
-    validateField(field, data[field]);
-  }, [data, validateField]);
+    validateSingleField(field, data[field]);
+  }, [data, validateSingleField]);
 
   const validateAll = useCallback(() => {
     const result = validateForm(data, rules);

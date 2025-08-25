@@ -28,7 +28,7 @@ class TTSService {
     volume: 0.8,
     lang: 'zh-CN'
   };
-  private listeners: Map<string, Function[]> = new Map();
+  private listeners: Map<string, ((...args: unknown[]) => void)[]> = new Map();
 
   constructor() {
     this.synthesis = window.speechSynthesis;
@@ -237,14 +237,14 @@ class TTSService {
   }
 
   // 事件监听器管理
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
     this.listeners.get(event)!.push(callback);
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (...args: unknown[]) => void): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       const index = callbacks.indexOf(callback);
@@ -254,7 +254,7 @@ class TTSService {
     }
   }
 
-  private emit(event: string, data?: any): void {
+  private emit(event: string, data?: unknown): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.forEach(callback => {
@@ -334,7 +334,7 @@ export const ttsUtils = {
     return text
       .replace(/[\r\n]+/g, ' ') // 替换换行为空格
       .replace(/\s+/g, ' ') // 合并多个空格
-      .replace(/[#@\*\[\]\(\)]/g, '') // 移除特殊符号
+      .replace(/[#@*[\]()]/g, '') // 移除特殊符号
       .trim();
   },
 

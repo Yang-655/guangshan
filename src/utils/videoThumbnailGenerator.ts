@@ -41,7 +41,7 @@ export class VideoThumbnailGenerator {
       video.crossOrigin = 'anonymous';
       video.preload = 'metadata';
       
-      let timeoutId: NodeJS.Timeout;
+      let timeoutId: NodeJS.Timeout | undefined = undefined;
       
       const cleanup = () => {
         if (timeoutId) clearTimeout(timeoutId);
@@ -111,7 +111,7 @@ export class VideoThumbnailGenerator {
         }
       };
       
-      const onError = (error: any) => {
+      const onError = (error: Event | string) => {
         console.error('视频加载失败:', error);
         cleanup();
         reject(new Error('视频加载失败'));
@@ -170,7 +170,7 @@ export class VideoThumbnailGenerator {
         resolve(info);
       };
       
-      video.onerror = (error) => {
+      video.onerror = (error: Event | string) => {
         console.error('获取视频信息失败:', error);
         reject(new Error('获取视频信息失败'));
       };

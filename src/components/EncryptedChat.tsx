@@ -855,7 +855,6 @@ const EncryptedChat: React.FC<EncryptedChatProps> = ({
       recognition.maxAlternatives = 1;
       
       let finalTranscript = '';
-      let recognitionTimeout: NodeJS.Timeout;
       
       // 设置超时
       const timeoutId = setTimeout(() => {

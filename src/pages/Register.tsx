@@ -45,7 +45,7 @@ export default function Register() {
     }
   );
   
-  const passwordStrength = checkPasswordStrength(formData.password);
+  const passwordStrength = checkPasswordStrength(String(formData.password));
 
   // 移除旧的验证函数，使用新的验证系统
 
@@ -102,7 +102,7 @@ export default function Register() {
       // 模拟验证成功
       if (verificationCode === '123456') {
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', formData.email);
+        localStorage.setItem('userEmail', String(formData.email));
         success('验证成功！欢迎加入光闪');
         setTimeout(() => navigate('/'), 1000);
       } else {
@@ -148,7 +148,7 @@ export default function Register() {
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">验证您的邮箱</h2>
             <p className="text-gray-600 mb-4">
-              我们已向 <span className="font-medium text-gray-800">{formData.email}</span> 发送了验证码
+              我们已向 <span className="font-medium text-gray-800">{String(formData.email)}</span> 发送了验证码
             </p>
             <p className="text-sm text-gray-500">
               请查看您的邮箱并输入6位验证码

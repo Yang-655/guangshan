@@ -98,5 +98,5 @@ export class VideoTestHelper {
 
 // 在开发环境中将工具添加到全局对象，方便调试
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).VideoTestHelper = VideoTestHelper;
+  (window as typeof window & { VideoTestHelper: typeof VideoTestHelper }).VideoTestHelper = VideoTestHelper;
 }
