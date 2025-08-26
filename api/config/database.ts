@@ -3,10 +3,9 @@
  */
 import { Sequelize } from 'sequelize';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// 在 Vercel 环境中使用简化的路径处理
+const __dirname = process.cwd();
 
 // 数据库文件路径 - 生产环境使用内存数据库
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;

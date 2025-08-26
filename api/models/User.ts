@@ -62,7 +62,7 @@ User.init({
   id: {
     type: DataTypes.STRING,
     primaryKey: true,
-    defaultValue: () => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    defaultValue: () => `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   },
   username: {
     type: DataTypes.STRING,
