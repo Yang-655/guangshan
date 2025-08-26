@@ -16,9 +16,15 @@ export default function TestPage() {
           应用正常运行！
         </h1>
         
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-4">
           如果您能看到这个页面，说明应用已经成功部署并正常工作。
         </p>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+          <p className="text-blue-800 text-sm font-medium">
+            🚀 自动部署测试 - {new Date().toLocaleString()}
+          </p>
+        </div>
         
         <div className="space-y-3">
           <button
