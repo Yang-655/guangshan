@@ -606,6 +606,35 @@ const LiveStreaming: React.FC = () => {
     }
   };
 
+  // 处理点击空白区域关闭设置菜单
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    // 如果点击的不是设置菜单或其子元素，则关闭菜单
+    const target = e.target as HTMLElement;
+    const settingsPanel = document.querySelector('[data-settings-panel]');
+    const settingsButton = document.querySelector('[data-settings-button]');
+    
+    if (showSettings && 
+        settingsPanel && 
+        !settingsPanel.contains(target) && 
+        settingsButton && 
+        !settingsButton.contains(target)) {
+      setShowSettings(false);
+    }
+    
+    // 同样处理分享面板
+    if (showSharePanel) {
+      const sharePanel = document.querySelector('[data-share-panel]');
+      const shareButton = document.querySelector('[data-share-button]');
+      
+      if (sharePanel && 
+          !sharePanel.contains(target) && 
+          shareButton && 
+          !shareButton.contains(target)) {
+        setShowSharePanel(false);
+      }
+    }
+  };
+
   const renderMessage = (msg: LiveMessage) => {
     const levelColor = msg.user.level >= 15 ? 'text-yellow-500' : msg.user.level >= 10 ? 'text-purple-500' : msg.user.level >= 5 ? 'text-blue-500' : 'text-gray-500';
     
@@ -661,7 +690,7 @@ const LiveStreaming: React.FC = () => {
       className={`min-h-screen bg-black relative overflow-hidden ${
         isImmersiveMode ? 'fixed inset-0 z-50' : ''
       }`}
-      onMouseMove={handleMouseMove}
+      onClick={handleBackgroundClick}
     >
       {/* 直播画面区域 */}
       <div 
@@ -755,6 +784,7 @@ const LiveStreaming: React.FC = () => {
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="p-1.5 sm:p-2 bg-black/30 backdrop-blur-sm rounded-full hover:bg-black/40 transition-colors"
+              data-settings-button
             >
               <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </button>
@@ -785,6 +815,7 @@ const LiveStreaming: React.FC = () => {
               aria-haspopup="menu"
               role="button"
               tabIndex={0}
+              data-share-button
             >
               {isSharing ? (
                 <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -837,6 +868,7 @@ const LiveStreaming: React.FC = () => {
                        max-sm:translate-y-0 max-sm:animate-slide-up
                        ${isDragging ? 'max-sm:transition-none' : ''}`}
              role="menu"
+             data-share-panel
              aria-label="分享选项菜单"
              style={{
                transform: isDragging && window.innerWidth < 640 
@@ -982,7 +1014,10 @@ const LiveStreaming: React.FC = () => {
       
       {/* 设置面板 */}
       {showSettings && !isImmersiveMode && !showSharePanel && (
-        <div className="absolute top-14 right-1 sm:top-16 sm:right-2 md:top-20 md:right-4 bg-black/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 z-30 max-h-[80vh] overflow-y-auto w-56 sm:w-64 md:w-80 text-xs sm:text-sm">
+        <div 
+          className="absolute top-14 right-1 sm:top-16 sm:right-2 md:top-20 md:right-4 bg-black/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 z-30 max-h-[80vh] overflow-y-auto w-56 sm:w-64 md:w-80 text-xs sm:text-sm"
+          data-settings-panel
+        >
           <div className="space-y-4">
             {/* 基础控制 */}
             <div className="space-y-2">
