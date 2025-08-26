@@ -268,7 +268,7 @@ interface MemoizedComponentProps {
 }
 
 const componentCache = new Map<string, React.ReactElement>();
-let cacheKeys: string[] = [];
+const cacheKeys: string[] = [];
 
 export function MemoizedComponent({
   children,

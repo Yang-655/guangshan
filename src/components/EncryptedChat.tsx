@@ -161,7 +161,7 @@ const EncryptedChat: React.FC<EncryptedChatProps> = ({
       
       let finalContent = decryptedMessage.content;
       let translatedContent = '';
-      let detectedLanguage = language;
+      const detectedLanguage = language;
       
       // 如果启用了自动翻译且检测到的语言不是目标语言
       if (autoTranslate && translationServiceRef.current && language !== targetLanguage) {
@@ -201,8 +201,8 @@ const EncryptedChat: React.FC<EncryptedChatProps> = ({
     if (!newMessage.trim() || !chatManagerRef.current) return;
     
     try {
-      let messageToSend = newMessage;
-      let originalMessage = newMessage;
+      const messageToSend = newMessage;
+      const originalMessage = newMessage;
       let detectedLanguage = 'zh-CN';
       
       // 如果启用了翻译服务，检测语言

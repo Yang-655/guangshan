@@ -1,5 +1,4 @@
 // 翻译服务模块
-import { TranslationConfig } from '../components/TranslationSettings';
 
 export interface TranslationResult {
   translatedText: string;
@@ -89,7 +88,7 @@ class TranslationService {
             this.geolocationInfo = await this.getLocationInfo(latitude, longitude);
             console.log('Geolocation detected:', this.geolocationInfo);
           },
-          (error) => {
+          () => {
             console.warn('Geolocation permission denied, trying IP-based detection');
             this.detectLocationByIP();
           },

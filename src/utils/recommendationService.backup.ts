@@ -1,5 +1,4 @@
 // 推荐算法服务
-import { translationService } from './translationService';
 
 // 用户行为数据接口
 interface UserBehavior {
@@ -49,6 +48,19 @@ interface RecommendationResult {
   score: number;
   reason: string; // 推荐原因
   category: string;
+}
+
+// 发布数据接口
+interface PublishData {
+  title?: string;
+  description?: string;
+  hashtags?: string[];
+  location?: string;
+  privacyLevel?: string;
+  videoUrl?: string;
+  videoFile?: string;
+  userId?: string;
+  duration?: number;
 }
 
 class RecommendationService {
@@ -212,7 +224,7 @@ class RecommendationService {
     });
 
     // 排序并应用多样性控制
-    const diversifiedResults = this.applyEnhancedDiversityControl(scoredVideos, count, userPreference);
+    const diversifiedResults = this.applyEnhancedDiversityControl(scoredVideos, count);
     
     return diversifiedResults.slice(0, count);
   }
@@ -408,8 +420,7 @@ class RecommendationService {
   // 增强版多样性控制
   private applyEnhancedDiversityControl(
     scoredVideos: (RecommendationResult & { confidence: number })[], 
-    count: number,
-    userPreference?: UserPreference
+    count: number
   ): RecommendationResult[] {
     // 按分数和置信度综合排序
     scoredVideos.sort((a, b) => {
@@ -423,7 +434,6 @@ class RecommendationService {
     const creatorCount: Record<string, number> = {};
     
     // 动态计算类别限制
-    const uniqueCategories = [...new Set(scoredVideos.map(v => v.category))];
     const maxPerCategory = Math.max(1, Math.floor(count * 0.4)); // 每个类别最多占40%
     const maxPerCreator = Math.max(1, Math.floor(count * 0.3)); // 每个创作者最多占30%
     
@@ -490,7 +500,7 @@ class RecommendationService {
   }
 
   // 标记不感兴趣
-  markAsNotInterested(userId: string, videoId: string, reason?: string): void {
+  markAsNotInterested(userId: string, videoId: string): void {
     if (!this.blacklistedVideos.has(userId)) {
       this.blacklistedVideos.set(userId, new Set());
     }
@@ -544,7 +554,7 @@ class RecommendationService {
   }
 
   // 发布新视频到推荐系统
-  async publishVideo(publishData: any): Promise<string> {
+  async publishVideo(publishData: PublishData): Promise<string> {
     // 生成唯一视频ID
     const videoId = `user_video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -617,7 +627,7 @@ class RecommendationService {
   }
 
   // 发布照片到推荐系统
-  publishPhoto(publishData: any): string {
+  publishPhoto(publishData: PublishData): string {
     // 生成唯一照片ID
     const photoId = `user_photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -683,7 +693,7 @@ class RecommendationService {
   }
   
   // 计算初始质量分数
-  private calculateInitialQualityScore(publishData: any): number {
+  private calculateInitialQualityScore(publishData: PublishData): number {
     let score = 5.0; // 基础分数
     
     // 根据标题长度调整
@@ -737,18 +747,18 @@ class RecommendationService {
     const deleted = this.videoContents.delete(videoId);
     if (deleted) {
       // 清理相关的用户行为数据
-      this.userBehaviors.forEach((behaviors, userId) => {
+      this.userBehaviors.forEach((behaviors, uid) => {
         const filteredBehaviors = behaviors.filter(b => b.videoId !== videoId);
-        this.userBehaviors.set(userId, filteredBehaviors);
+        this.userBehaviors.set(uid, filteredBehaviors);
       });
       
       // 清理已观看记录
-      this.viewedVideos.forEach((videos, userId) => {
+      this.viewedVideos.forEach((videos) => {
         videos.delete(videoId);
       });
       
       // 清理黑名单记录
-      this.blacklistedVideos.forEach((videos, userId) => {
+      this.blacklistedVideos.forEach((videos) => {
         videos.delete(videoId);
       });
       

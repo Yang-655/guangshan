@@ -597,7 +597,7 @@ const AdvancedVideoEditor: React.FC<VideoEditorProps> = ({
   };
 
   const getVideoStyle = useMemo(() => {
-    let style: React.CSSProperties = {};
+    const style: React.CSSProperties = {};
     
     // Base adjustments
     let filterString = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px)`;
